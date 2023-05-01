@@ -1,41 +1,55 @@
 const db = require('../db')
+const apiError = require('../error/api.error')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const {User} = require('../models/models')
+
+const generateJwt = (id, email) => {
+  return jwt.sign(
+    {id, email},
+    process.env.JWT_ACCESS_SECRET,
+    {expiresIn:"24h"})
+}
 
 class UserController{
-  async createUser(req, res) {
-    const {name, email, password} = req.body
-    const newPerson = await db.query(
-      'INSERT INTO person (name, email, password) values ($1, $2, $3) RETURNING *',
-      [name, email, password])
-    res.json(newPerson.rows[0])
+
+  async registration(req, res, next) {
+  const {email, password} = req.body
+
+    const candidate = await User.findOne({where: {email}})
+
+    if (candidate) {
+      return next(apiError.badRequest("email error"))
+    }
+    const hashPassword = await bcrypt.hash(password, 5)
+    const user = await User.create({email, password: hashPassword})
+    const token = generateJwt(user.id, user.email)
+    return res.json({token})
+
   }
 
-  async getUser(req, res) {
-    const newPerson = await db.query('SELECT * FROM person')
-    res.json(newPerson.rows)
+  async login(req, res, next) {
+    const {email, password} = req.body
+    const user = await User.findOne({where: {email}})
+    if (!user){
+        return next(apiError.internal('user not found'))
+    }
+
+    let comparePassword = bcrypt.compareSync(password, user.password)
+    if (!comparePassword){
+      return next(apiError.internal('error in login or password'))
+    }
+
+    const token = generateJwt(user.id, user.email,)
+    return res.json({token})
   }
 
-  async getOneUser(req, res) {
-    const id = req.params.id
-    const user = await db.query(
-      'SELECT * FROM person WHERE id = $1',
-      [id])
-    res.json(user.rows[0])
-  }
+  async check(req, res, next) {
+    const token = generateJwt(req.user.id, req.user.email)
 
-  async updateUser(req, res) {
-    const { id, email, password } = req.body
-    const user = await db.query(
-      'UPDATE person set email = $1, password = $2 WHERE id = $3 RETURNING *',
-      [email, password, id])
-    res.json(user.rows[0])
-  }
+    return  res.json({token})
 
-  async deleteUser(req, res) {
-    const id = req.params.id
-    const user = await db.query(
-      'DELETE FROM person WHERE id = $1',
-      [id])
-    res.json(user.rows[0])
+
   }
 }
 
