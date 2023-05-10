@@ -2,6 +2,8 @@ require('dotenv').config()
 
 const express = require('express')
 const userRouter = require('./routes/user.routes')
+const projectRouter = require('./routes/project.routes')
+const worksRouter = require('./routes/works.routes')
 const sequelize = require('./db')
 const models = require('./models/models')
 const cors = require('cors')
@@ -15,13 +17,14 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use('/api', userRouter)
+app.use('/api-project', projectRouter )
+app.use('/api-works', worksRouter )
 
 // catch error
 app.use(errorHandler)
 
 const start = async () => {
   try {
-
 
     await sequelize.authenticate()
     await sequelize.sync()
