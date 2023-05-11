@@ -18,10 +18,19 @@ class WorksController {
           })
       }
 
+      if (!status) {
+        workStatus = await WorksStatus.create( {
+          complited: false,
+          text: "нет",
+          percent_complited: 0,
+          workId: work.id,
+        })
+      }
+
     } catch (error) {
       next(ApiError.badRequest(error.message))
     } finally {
-      return res.json(workStatus)
+      return res.json(work)
     }
   }
 
@@ -34,35 +43,26 @@ class WorksController {
     return res.json(works)
   }
 
-  async getOne(req, res) {
+  async getOne(req, res, next) {
     const {id} = req.params
-    let workStatus
     let work
     try {
-      workStatus = await WorksStatus.findOne({where: {workID: {id}}})
-    } catch (error) {
-      console.log(error)
-    }
-
-
-    if (workStatus){
       work = await Works.findOne(
-        {where: {id},
-          include: workStatus
+        {
+          where: {
+            id: id
+          },
+          include: [{
+            model: WorksStatus,
+            where: {workId: id}
+          }]
         },
       )
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+      return res.json(work)
     }
-
-    if (!workStatus){
-      work = await Works.findOne(
-        {where: {id}},
-      )
-    }
-
-
-
-
-    return res.json(work)
   }
 }
 

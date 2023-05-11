@@ -1,5 +1,5 @@
-const {Project} = require('../models/models')
-const apiError = require('../error/api.error')
+const { Works, Project} = require('../models/models')
+const ApiError = require("../error/api.error");
 
 class ProjectController {
   async create(req, res) {
@@ -13,8 +13,27 @@ class ProjectController {
     return res.json(projects)
   }
 
-  async getOne(req, res) {
+  async getOne(req, res, next) {
+    const {id} = req.params
+    let project
+    try {
+      project = await Project.findOne(
+        {
+          where: {
+            id: id
+          },
+          include: [{
+            model: Works,
+            where: {projectId: id}
+          }]
+        },
+      )
 
+    } catch (error){
+      next(ApiError.badRequest(error.message))
+    } finally {
+      res.json(project)
+    }
   }
 }
 

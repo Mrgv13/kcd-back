@@ -5,7 +5,7 @@ const router = new Router()
 
 router.post('/', ProjectController.create)
 router.get('/', ProjectController.getAll)
-router.get('/:id')
+router.get('/:id', ProjectController.getOne)
 
 
 module.exports = router
