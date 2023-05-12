@@ -1,4 +1,4 @@
-const {Works, WorksStatus} = require('../models/models')
+const {Works, WorksStatus, WorksAttributes} = require('../models/models')
 const ApiError = require('../error/api.error')
 
 class WorksController {
@@ -46,18 +46,44 @@ class WorksController {
   async getOne(req, res, next) {
     const {id} = req.params
     let work
+    let worksAttributes
     try {
-      work = await Works.findOne(
-        {
-          where: {
-            id: id
+       worksAttributes = await WorksAttributes.findAll({where: {workId: id}})
+      if (worksAttributes.length !== 0) {
+        work = await Works.findOne(
+          {
+            where: {
+              id: id
+            },
+            include: [
+              {
+                model: WorksStatus,
+                where: {workId: id}
+              },
+              {
+                model: WorksAttributes,
+                where: {workId: id}
+              },
+            ]
           },
-          include: [{
-            model: WorksStatus,
-            where: {workId: id}
-          }]
-        },
-      )
+        )
+      }
+
+      if (worksAttributes.length === 0) {
+        work = await Works.findOne(
+          {
+            where: {
+              id: id
+            },
+            include: [
+              {
+                model: WorksStatus,
+                where: {workId: id}
+              }
+            ]
+          },
+        )
+      }
     } catch (error) {
       next(ApiError.badRequest(error.message))
     } finally {

@@ -1,4 +1,4 @@
-const {WorksAttributes} = require("../models/models");
+const {WorksAttributes, WorksAttributesStatus} = require("../models/models");
 const ApiError = require('../error/api.error')
 
 class Works_attributesController {
@@ -6,10 +6,28 @@ class Works_attributesController {
     let works_attributes
 
     try {
-      const {works_attributes_name, date_start, date_end, workId} = req.body
+      const {works_attributes_name, date_start, date_end, workId, status} = req.body
       if (!workId) throw "workID is empty"
-
+      let worksAttributesStatus
       works_attributes = await WorksAttributes.create({works_attributes_name, date_start, date_end, workId})
+
+      if (status) {
+        worksAttributesStatus = await WorksAttributesStatus.create( {
+          complited: status.complited,
+          text: status.text,
+          percent_complited: status.percent_complited,
+          worksAttributeId: works_attributes.id,
+        })
+      }
+
+      if (!status) {
+        worksAttributesStatus = await WorksAttributesStatus.create( {
+          complited: false,
+          text: "нет",
+          percent_complited: 0,
+          worksAttributeId: works_attributes.id,
+        })
+      }
 
     } catch (error){
       next(ApiError.badRequest(error))
@@ -27,14 +45,27 @@ class Works_attributesController {
     res.json(works_attributes)
   }
 
-  async getOne(req, res) {
+  async getOne(req, res, next) {
     const {id} = req.params
-    res.json("wa done" + id)
-  }
 
-  async check(req, res) {
-    const query = req.query
-    res.json(query)
+    let works_attributes
+    try {
+      works_attributes = await WorksAttributes.findOne(
+        {
+          where: {
+            id: id
+          },
+          include: [{
+            model: WorksAttributesStatus,
+            where: {worksAttributeId: id}
+          }]
+        },
+      )
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+      return res.json(works_attributes)
+    }
   }
 }
 

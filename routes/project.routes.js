@@ -4,7 +4,7 @@ const router = new Router()
 
 
 router.post('/', ProjectController.create)
-router.get('/', ProjectController.getAll)
+router.get('/:userId', ProjectController.getAll)
 router.get('/:id', ProjectController.getOne)
 
 
