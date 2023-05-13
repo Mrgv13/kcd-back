@@ -1,5 +1,6 @@
-const {Works, WorksStatus, WorksAttributes} = require('../models/models')
+const {Works, WorksStatus, WorksAttributes, WorksAttributesStatus} = require('../models/models')
 const ApiError = require('../error/api.error')
+const e = require("express");
 
 class WorksController {
   async create(req, res, next) {
@@ -47,8 +48,10 @@ class WorksController {
     const {id} = req.params
     let work
     let worksAttributes
+    let arr = []
     try {
        worksAttributes = await WorksAttributes.findAll({where: {workId: id}})
+      worksAttributes.forEach(el => arr.push(el.id))
       if (worksAttributes.length !== 0) {
         work = await Works.findOne(
           {
@@ -62,7 +65,13 @@ class WorksController {
               },
               {
                 model: WorksAttributes,
-                where: {workId: id}
+                where: {workId: id},
+                include: [
+                  {
+                    model: WorksAttributesStatus,
+                    where: {worksAttributeId: arr}
+                  }
+                ]
               },
             ]
           },

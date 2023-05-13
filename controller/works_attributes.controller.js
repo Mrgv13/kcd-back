@@ -6,10 +6,10 @@ class Works_attributesController {
     let works_attributes
 
     try {
-      const {works_attributes_name, date_start, date_end, workId, status} = req.body
+      const {work_name, date_start, date_end, workId, status} = req.body
       if (!workId) throw "workID is empty"
       let worksAttributesStatus
-      works_attributes = await WorksAttributes.create({works_attributes_name, date_start, date_end, workId})
+      works_attributes = await WorksAttributes.create({work_name, date_start, date_end, workId})
 
       if (status) {
         worksAttributesStatus = await WorksAttributesStatus.create( {
@@ -65,6 +65,33 @@ class Works_attributesController {
       next(ApiError.badRequest(error.message))
     } finally {
       return res.json(works_attributes)
+    }
+  }
+
+  async delete(req, res, next) {
+    const {id} = req.params
+
+    let works_attributes
+    let works_attributes_status
+    try {
+
+      works_attributes_status = await WorksAttributesStatus.destroy({
+        where: {
+          worksAttributeId: id
+        }
+      })
+
+      works_attributes = await WorksAttributes.destroy(
+        {
+          where: {
+            id: id
+          },
+        },
+      )
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+      return res.json(true)
     }
   }
 }

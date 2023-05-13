@@ -33,7 +33,7 @@ const WorksStatus = sequelize.define('works_status',{
 
 const WorksAttributes = sequelize.define('works_attributes',{
   id: {type:DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  works_attributes_name: { type:DataTypes.STRING},
+  work_name: { type:DataTypes.STRING},
   date_start: { type:DataTypes.STRING},
   date_end: { type:DataTypes.STRING},
 })

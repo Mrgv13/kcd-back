@@ -5,5 +5,6 @@ const router = new Router()
 router.post('/',Works_attributesController.create)
 router.get('/', Works_attributesController.getAll)
 router.get('/:id', Works_attributesController.getOne)
+router.delete('/:id', Works_attributesController.delete)
 
 module.exports = router
