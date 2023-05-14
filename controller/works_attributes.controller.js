@@ -128,6 +128,45 @@ class Works_attributesController {
       return res.json(true)
     }
   }
+
+  async update(req, res, next) {
+    const {id} = req.params
+    const {work_name, date_start, date_end, price, percent_complited} = req.body
+
+    let works_attributes
+    let works_attributes_status
+
+    try {
+      works_attributes_status = await WorksAttributesStatus.update(
+        {
+          percent_complited: percent_complited
+        },
+        {
+        where: {
+          worksAttributeId: id
+        }
+      })
+
+      works_attributes = await WorksAttributes.update(
+        {
+          work_name: work_name,
+          date_start: date_start,
+          date_end: date_end,
+          price: price
+        },
+        {
+          where: {
+            id: id
+          },
+        },
+      )
+
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+      return res.json(work_name)
+    }
+  }
 }
 
 module.exports = new Works_attributesController()
