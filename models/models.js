@@ -36,12 +36,14 @@ const WorksAttributes = sequelize.define('works_attributes',{
   work_name: { type:DataTypes.STRING},
   date_start: { type:DataTypes.STRING},
   date_end: { type:DataTypes.STRING},
+  price: { type:DataTypes.DECIMAL},
 })
 
 const WorksAttributesStatus = sequelize.define('works_attributes_status',{
   id: {type:DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   complited: { type:DataTypes.BOOLEAN},
   text: { type:DataTypes.STRING},
+  percent_complited: { type:DataTypes.INTEGER, defaultValue: 0},
 })
 
 User.belongsToMany(Project, {

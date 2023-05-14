@@ -6,10 +6,10 @@ class Works_attributesController {
     let works_attributes
 
     try {
-      const {work_name, date_start, date_end, workId, status} = req.body
+      const {work_name, date_start, date_end, price, workId, status} = req.body
       if (!workId) throw "workID is empty"
       let worksAttributesStatus
-      works_attributes = await WorksAttributes.create({work_name, date_start, date_end, workId})
+      works_attributes = await WorksAttributes.create({work_name, date_start, date_end, price, workId})
 
       if (status) {
         worksAttributesStatus = await WorksAttributesStatus.create( {
@@ -37,12 +37,46 @@ class Works_attributesController {
     }
   }
 
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     const {workId} = req.query
     let works_attributes
-    if (!workId) works_attributes = await WorksAttributes.findAll()
-    if (workId) works_attributes = await WorksAttributes.findAll({where: {workId}})
-    res.json(works_attributes)
+    let works_attributes2
+    let arr = []
+
+    try {
+
+      if (!workId) throw "bad id"
+
+      if (workId) {
+        if (workId) works_attributes = await WorksAttributes.findAll(
+          {
+            where:
+              {
+                workId
+              },
+          })
+
+        works_attributes.forEach(el => arr.push(el.id))
+
+        works_attributes2 = await WorksAttributes.findAll(
+          {
+            where:
+              {
+                workId
+              },
+            include: [{
+              model: WorksAttributesStatus,
+              where: {
+                worksAttributeId: arr
+              }
+            }]
+          })
+      }
+    } catch (e) {
+      next(ApiError.badRequest(e))
+    } finally {
+      res.json(works_attributes2)
+    }
   }
 
   async getOne(req, res, next) {
@@ -57,7 +91,7 @@ class Works_attributesController {
           },
           include: [{
             model: WorksAttributesStatus,
-            where: {worksAttributeId: id}
+            where: {workAttributeId: id}
           }]
         },
       )

@@ -5,6 +5,7 @@ const router = new Router()
 router.post('/', WorksController.create)
 router.get('/', WorksController.getAll)
 router.get('/:id', WorksController.getOne)
+router.delete('/', WorksController.delete)
 
 
 module.exports = router

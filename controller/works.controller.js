@@ -12,9 +12,9 @@ class WorksController {
 
       if (status) {
          workStatus = await WorksStatus.create( {
-            complited: status.complited,
-            text: status.text,
-            percent_complited: status.percent_complited,
+            complited: status.complited || false,
+            text: status.text || 'нет',
+            percent_complited: status.percent_complited || 12,
             workId: work.id,
           })
       }
@@ -38,10 +38,37 @@ class WorksController {
   async getAll(req, res) {
     const {projectId} = req.query
     let works
-    if (!projectId) works = await Works.findAll()
-    if (projectId) works = await Works.findAll({where: {projectId}})
+    let works2
+    let arr = []
 
-    return res.json(works)
+    if (!projectId) works = await Works.findAll()
+    if (projectId) {
+      works = await Works.findAll(
+        {
+          where:
+            {
+              projectId
+            },
+        })
+
+      works.forEach(el => arr.push(el.id))
+      works2 = await Works.findAll(
+        {
+          where:
+            {
+              projectId
+            },
+          include: [
+            {
+              model: WorksStatus,
+              where: {workId: arr}
+            },
+          ]
+        })
+    }
+
+
+      return res.json(works2)
   }
 
   async getOne(req, res, next) {
@@ -50,7 +77,7 @@ class WorksController {
     let worksAttributes
     let arr = []
     try {
-       worksAttributes = await WorksAttributes.findAll({where: {workId: id}})
+      worksAttributes = await WorksAttributes.findAll({where: {workId: id}})
       worksAttributes.forEach(el => arr.push(el.id))
       if (worksAttributes.length !== 0) {
         work = await Works.findOne(
@@ -97,6 +124,62 @@ class WorksController {
       next(ApiError.badRequest(error.message))
     } finally {
       return res.json(work)
+    }
+  }
+
+  async delete(req, res, next) {
+    const {id} = req.query
+    let arr = []
+    let work
+    let workStatus
+    let workAttAll
+    let workAtt
+    let workAttSt
+
+    try {
+      workAttAll = WorksAttributes.findAll(
+        {
+          where:
+            {
+              workId: id
+            }
+        })
+
+      if (!workAttAll) {
+        workAttAll.forEach(el => arr.push(el.id))
+
+        workAttSt = WorksAttributesStatus.destroy(
+          {
+            where: {workAttributeId: arr}
+          })
+
+        workAtt = WorksAttributes.destroy({
+          where: {
+            workId: id
+          }
+        })
+      }
+
+      workStatus  = await WorksStatus.destroy(
+        {
+          where:
+            {
+              workId: id
+            }
+        })
+
+      work  = await Works.destroy(
+        {
+          where:
+            {
+              id
+            }
+        })
+
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+      return res.json(true)
     }
   }
 }
