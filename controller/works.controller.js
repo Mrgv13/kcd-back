@@ -182,6 +182,59 @@ class WorksController {
       return res.json(true)
     }
   }
+
+  async getCalcPercent(req, res, next) {
+    const {id} = req.params
+    let arr = []
+    let percent = 0
+    let workAtt
+    let workAttSt
+    let workStatus
+    let workStatus2
+
+    try {
+    workAtt = await WorksAttributes.findAll({
+      where:
+        {
+          workId: id
+        }
+    })
+
+      workAtt.forEach(el => arr.push(el.id))
+
+      workAttSt = await WorksAttributesStatus.findAll({
+        where: {
+          worksAttributeId: arr
+        }
+      })
+
+      arr = []
+      workAttSt.forEach(el => arr.push(el.percent_complited))
+
+      arr.forEach(el => percent += el)
+
+      percent = Math.round(percent/ arr.length)
+
+      workStatus = await WorksStatus.update(
+        {
+          percent_complited: percent
+        },
+        {
+          where: {
+            workId: id
+          }
+        })
+
+
+    } catch (error) {
+      next(ApiError.badRequest(error.message))
+    } finally {
+
+    }
+
+
+    return res.json(percent)
+  }
 }
 
 module.exports = new WorksController()
