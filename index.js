@@ -1,15 +1,18 @@
 require('dotenv').config()
 
 const express = require('express')
+const docx = require("docx");
 const userRouter = require('./routes/user.routes')
 const projectRouter = require('./routes/project.routes')
 const worksRouter = require('./routes/works.routes')
 const works_attributesRouter = require('./routes/works_attributes.routes')
+const docxGen = require('./routes/docx.routes')
+
+
 const sequelize = require('./db')
 const models = require('./models/models')
 const cors = require('cors')
 const errorHandler = require('./middleware/ErrorHandlingMiddleware')
-
 
 const PORT = process.env.PORT || 5050
 
@@ -17,10 +20,12 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+app.use(express.static('files'))
 app.use('/api', userRouter)
 app.use('/api-project', projectRouter )
 app.use('/api-works', worksRouter )
 app.use('/works_attributes', works_attributesRouter )
+app.use('/gen-docx', docxGen )
 
 // catch error
 app.use(errorHandler)

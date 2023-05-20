@@ -221,7 +221,7 @@ class WorksController {
         },
         {
           where: {
-            workId: id
+              workId: id
           }
         })
 
